@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 
 const Hero = ({ children } : { children: ReactNode }) => {
   return (
-    <div className='hero min-h-screen bg-base-200'>
+    <div className='hero min-h-screen'>
         { children }
     </div>
   )
@@ -17,7 +17,7 @@ Hero.Content = ({ children } : { children: ReactNode }) => (
 )
 
 Hero.Title = ({ title } : { title: string }) => (    
-  <h1 className='text-5xl font-bold'>
+  <h1 className='text-5xl font-bold text-secondary'>
     { title }
   </h1>
 )
