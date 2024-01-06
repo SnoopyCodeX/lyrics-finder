@@ -1,4 +1,11 @@
-# React + TypeScript + Vite
+# Lyrics Finder
+A simple song lyrics finder app built with Typescript, Fetch API, Express, React+Vite, Tailwind CSS, React-Hook-Forms, Zod, and DaisyUI.
+
+![preview](./screenshots/preview.png)
+
+
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
