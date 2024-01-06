@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 
 const Navbar = ({ children }: { children: ReactNode }) => {
   return (
-    <div className='navbar bg-primary text-primary-content'>
+    <div className='navbar bg-secondary text-primary'>
         { children }
     </div>
   )
@@ -29,7 +29,7 @@ Navbar.AvatarWithDropdown = ({ src, children }: { src: string, children: ReactNo
                 <img alt="Avatar" src={src} />
             </div>
         </div>
-        <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-content rounded-box w-52">
+        <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-secondary rounded-box w-52">
             { children }
         </ul>
     </div>
