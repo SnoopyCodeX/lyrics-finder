@@ -43,7 +43,7 @@ function App() {
 
   const onSubmit: SubmitHandler<SongInput> = async (data) => {
     setSong(data.song)
-    mutation.mutate(song)
+    mutation.mutate(data.song)
   }
 
   return (
