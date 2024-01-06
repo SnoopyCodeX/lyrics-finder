@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 
 const LyricsCard = ({ children }: { children: ReactNode }) => {
   return (
-    <div className='card w-full bg-base-100 shadow-xl'>
+    <div className='card w-full shadow-xl'>
         { children }
     </div>
   )
