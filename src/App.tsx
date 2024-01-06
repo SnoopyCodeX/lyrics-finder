@@ -40,7 +40,7 @@ function App() {
     setSong(data.song)
 
     if(data.song) 
-      setResult(await (await fetch(`http://localhost:3000/lyrics?song=${encodeURIComponent(data.song)}`)).json())
+      setResult(await (await fetch(`https://lyrics-finder-api.vercel.app/lyrics?song==${encodeURIComponent(data.song)}`)).json())
     else
       alert('Song title is required.')
   }
