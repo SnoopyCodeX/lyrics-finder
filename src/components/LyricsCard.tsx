@@ -22,7 +22,7 @@ LyricsCard.Actions = ({ position, children }: { position?: "end" | "center" | "s
 
 LyricsCard.Photo = ({ src }: { src: string }) => (
     <div className="avatar">
-        <div className="w-12 h-12 rounded-full ring ring-offset-base-100 ring-primary ring-offset-2">
+        <div className="w-12 h-12 rounded-full ring ring-offset-base-100 ring-secondary ring-offset-2">
             <img alt="Photo" src={src} />
         </div>
     </div>
