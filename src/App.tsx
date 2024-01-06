@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { useForm, SubmitHandler, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import * as zod from 'zod'
 
 import Alert from './components/Alert'
+import Form from './components/Form'
 import Hero from './components/Hero'
 import LyricsCard from './components/LyricsCard'
 import Navbar from './components/Navbar'
@@ -15,38 +17,37 @@ import Lottie from 'lottie-react'
 import landingAnimationData from './assets/lottie/landing-page-animation.json'
 import songNotFoundAnimationData from './assets/lottie/song-not-found-animation.json'
 import profileUrl from './assets/profile.jpg'
+import { findLyrics } from './api/lyrics.api'
 import './App.css'
+
+type SongInput = {
+  song: string;
+}
 
 const schema = zod.object({
   song: zod.string()
 }).required()
 
-type LyricsResult = {
-  title: string;
-  artist: string;
-  lyrics: string;
-  albumArt: string;
-}
-
 function App() {
-  const { register, handleSubmit, formState: { isLoading, isSubmitting } } = useForm({
+  const methods =  useForm<SongInput>({
     resolver: zodResolver(schema)
   })
-  const [ result, setResult ] = useState<LyricsResult | undefined>(undefined)
-  const [ song, setSong ] = useState<string | undefined>(undefined)
-  const formRef = useRef<HTMLFormElement>(null)
+  const { handleSubmit, formState: { errors } } = methods
+  
+  const [ song, setSong ] = useState<string>("")
 
-  const onSubmit = async (data: { song?: string }) => {
+  const mutation = useMutation({
+    mutationFn: (song: string) => findLyrics(song),
+    retry: false
+  })
+
+  const onSubmit: SubmitHandler<SongInput> = async (data) => {
     setSong(data.song)
-
-    if(data.song) 
-      setResult(await (await fetch(`https://lyrics-finder-api.vercel.app/lyrics?song==${encodeURIComponent(data.song)}`)).json())
-    else
-      alert('Song title is required.')
+    mutation.mutate(song)
   }
 
   return (
-   <div className='min-w-[320px]' data-theme="coffee">
+   <div className='min-w-[320px] bg-primary'>
       <Navbar>
         <Navbar.Brand brand='Lyrics Finder' />
         <Navbar.Actions>
@@ -73,54 +74,84 @@ function App() {
         <Hero.Content>
           <Hero.Title title='Lyrics Finder' />
 
-          <p className='mt-2 mb-5'>
-            A simple song lyrics finder app built with Typescript, Fetch API, Express, React+Vite, Tailwind CSS, React-Hook-Forms, Zod, and DaisyUI.
+          <p className='mt-2 mb-5 text-secondary'>
+            A simple song lyrics finder app built with Typescript, Fetch API, Express, React+Vite, Tailwind CSS, React Query, React-Hook-Forms, Zod, and DaisyUI.
           </p>
 
-          <form ref={ formRef } onSubmit={ handleSubmit(onSubmit) } className="flex-column md:flex gap-2 w-full justify-items-center items-center">
-            <input type="text" {...register('song')} disabled={ isLoading || isSubmitting } className="w-full max-w-md input input-bordered rounded-md mb-2 md:mb-0 p-2 mr-0 hover:outNavbar.DropdownItemne focus:ring focus:outNavbar.DropdownItemne-none focus:ring-primary" placeholder="Search a song..." />
-            <button type='submit' className="btn md:btn-md btn-primary" disabled={ isLoading || isSubmitting }>
-              { isLoading || isSubmitting ? <span className='loading loading-ring text-primary'></span> : <FaSearch /> }
-              Search
-            </button>
-          </form>
+          <FormProvider {...methods}>
+            <Form onSubmit={ handleSubmit(onSubmit) }>
+              <Form.TextInput 
+                name='song'
+                validator={{ required: true }}
+                disabled={ mutation.isPending } 
+                className="w-full max-w-md input input-bordered border-secondary rounded-md mb-2 md:mb-0 p-2 mr-0 hover:outline-secondary focus:ring focus:outline-none focus:ring-secondary" 
+                placeholder="Search a song..." />
+
+              <Form.Action disabled={ mutation.isPending }>
+                 { mutation.isPending ? <span className='loading loading-ring text-secondary outline-none hover:outline focus:outline'></span> : <FaSearch /> }
+                Search
+              </Form.Action>
+            </Form>
+          </FormProvider>
+
+          <div>
+            {
+              errors.song && (<Alert type='error'>This field is required!</Alert>)
+            }
+          </div>
 
           <div className="container mx-auto mt-2">
             {
-              isLoading || isSubmitting ?
-                <SkeletonLoader /> :
+              mutation.isError && (
+                <>
+                  <Alert type='error'>
+                    <span>Error! The lyrics of <strong>{ song }</strong> was not found.</span>
+                  </Alert>
+                  <Lottie animationData={ songNotFoundAnimationData } loop={true} width={120} height={120} />
+                </>
+              )
+            }
+
+            {
+              mutation.isPending && (
+                <SkeletonLoader />
+              )
+            }
+
+            {
+              mutation.isSuccess && mutation.data && (
+                mutation.data.title === undefined ?
                 (
-                  result ?
-                  (
-                    result.title === undefined ?
-                    (
-                      <>
-                        <Alert type='error'>
-                          <span>Error! The lyrics of <strong>{ song }</strong> was not found.</span>
-                        </Alert>
-                        <Lottie animationData={ songNotFoundAnimationData } loop={true} width={120} height={120} />
-                      </>
-                    ) :
-                    <LyricsCard>
-                      <LyricsCard.Body>
-                        <div className="flex gap-4 items-start">
-                          <LyricsCard.Photo src={ result.albumArt } />
+                  <>
+                    <Alert type='error'>
+                      <span>Error! The lyrics of <strong>{ song }</strong> was not found.</span>
+                    </Alert>
+                    <Lottie animationData={ songNotFoundAnimationData } loop={true} width={120} height={120} />
+                  </>
+                ) :
+                <LyricsCard>
+                  <LyricsCard.Body>
+                    <div className="flex gap-4 items-start">
+                      <LyricsCard.Photo src={ mutation.data.albumArt } />
 
-                          <div className="flex-col gap-4 justify-items-center">
-                            <h4 className="card-title text-base-content">{ result.title }</h4>
-                            <p className="card-subtitle text-primary text-start text-sm">{ result.artist }</p>
-                          </div>
-                        </div>
+                      <div className="flex-col gap-4 justify-items-center">
+                        <h4 className="card-title text-secondary">{ mutation.data.title }</h4>
+                        <p className="card-subtitle text-secondary text-start text-sm">{ mutation.data.artist }</p>
+                      </div>
+                    </div>
 
-                        <p className="text-primary text-start mt-4" style={{ whiteSpace: "pre-line" }}>
-                          { result.lyrics }
-                        </p>
-                      </LyricsCard.Body>
-                    </LyricsCard>
-                  )
-                  :
-                  <Lottie animationData={ landingAnimationData } loop={true} width={120} height={120} />
-                )
+                    <p className="text-secondary text-start mt-4" style={{ whiteSpace: "pre-line" }}>
+                      { mutation.data.lyrics }
+                    </p>
+                  </LyricsCard.Body>
+                </LyricsCard>
+              )
+            }
+            
+            {
+              mutation.isIdle && (
+                <Lottie animationData={ landingAnimationData } loop={true} width={120} height={120} />
+              )
             }
           </div>
         </Hero.Content>
