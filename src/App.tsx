@@ -46,7 +46,7 @@ function App() {
   }
 
   return (
-   <div className='min-w-[320px]'>
+   <div className='min-w-[320px]' data-theme="coffee">
       <Navbar>
         <Navbar.Brand brand='Lyrics Finder' />
         <Navbar.Actions>
